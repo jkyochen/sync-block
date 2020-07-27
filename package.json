@@ -1,0 +1,7 @@
+{
+  "name": "sync-block",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Lanlyhs <ziqiang.chen@outlook.com>",
+  "license": "MIT"
+}
