@@ -1,0 +1,26 @@
+{
+  "name": "mock-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --detectOpenHandles --coverage --verbose --forceExit",
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
+  },
+  "dependencies": {
+    "bcrypto": "^5.2.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "knex": "^0.21.2",
+    "sqlite3": "^5.0.0",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "jest": "^26.2.2"
+  }
+}
