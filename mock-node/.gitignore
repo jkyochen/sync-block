@@ -141,4 +141,5 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,node
 
-blockchain.sqlite*
+blockchain.db
+blockchain_test.db
