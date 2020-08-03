@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest --detectOpenHandles --coverage --verbose --forceExit",
+    "test": "jest --detectOpenHandles --coverage --forceExit",
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
     "seed": "knex seed:run"
@@ -22,5 +22,9 @@
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "jest": "^26.2.2"
+  },
+  "jest": {
+    "verbose": true,
+    "testTimeout": 30000
   }
 }
