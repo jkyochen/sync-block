@@ -18,7 +18,7 @@ describe("test mock node", () => {
             const res = await chai.request(app).get("/version");
             expect(res.status).toEqual(200);
             expect(res.body.version).toEqual(2);
-            expect(res.body.start_height).toEqual(
+            expect(res.body.max_height).toEqual(
                 parseInt(process.env.blockHeight)
             );
         });
@@ -48,7 +48,7 @@ describe("test mock node", () => {
             let res = await chai.request(app).get(`/blockevents/${height}`);
             res = await chai
                 .request(app)
-                .get(`/blockevent/${res.body.eventHashs[0].hash}`);
+                .get(`/blockevent/${res.body.eventHashs[0]}`);
 
             expect(res.status).toEqual(200);
             expect(res.body.event.height).toEqual(height);

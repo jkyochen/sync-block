@@ -12,7 +12,7 @@ app.get("/version", async (req, res) => {
     });
     res.json({
         version: 2,
-        start_height: max_height,
+        max_height: max_height,
     });
 });
 
@@ -26,11 +26,16 @@ app.get("/blockheader/:height", async (req, res) => {
 });
 
 app.get("/blockevents/:height", async (req, res) => {
-    const eventHashs = await knex(tableNames.event)
+    const events = await knex(tableNames.event)
         .where({
             height: req.params.height,
         })
         .select("hash");
+
+    let eventHashs = events.map(e => {
+        return e.hash;
+    });
+
     res.json({
         eventHashs,
     });
