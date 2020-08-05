@@ -1,0 +1,15 @@
+{
+  "name": "sync-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "yarn start:p",
+    "start:p": "node node/parallel/index.js",
+    "start:c": "node node/concurrent/index.js"
+  },
+  "dependencies": {
+    "bdb": "^1.2.2",
+    "got": "^11.5.1"
+  }
+}
