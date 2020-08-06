@@ -1,11 +1,15 @@
-const { db, layout } = require('../store');
+const { parentPort } = require('worker_threads');
+const hash = require('./hash');
 
-async function executeValidateBlockEvent(hash) {
-
-    let waitValidateBlockEvent = await db.get(layout.event.encode(0, hash));
-    waitValidateBlockEvent = JSON.parse(waitValidateBlockEvent);
-}
-
-(async function () {
-    await executeValidateBlockEvent();
-})()
+parentPort.on('message', async (data) => {
+    try {
+        if (data.hash !== hash.sha256ToString(data.event)) {
+            throw ("Event has been changed");
+        }
+        parentPort.postMessage();
+    } catch (error) {
+        console.log(error);
+        port.close();
+        parentPort.close();
+    }
+});

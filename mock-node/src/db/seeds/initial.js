@@ -50,9 +50,7 @@ exports.seed = async (knex) => {
         block.txs = txs;
         block.txsNumber = txs.length;
 
-        block.hash = sha256
-            .digest(Buffer.from(JSON.stringify(block)))
-            .toString("hex");
+        block.hash = sha256ToString(block);
         block.nonce = 0; // TODO
 
         delete block.txs;

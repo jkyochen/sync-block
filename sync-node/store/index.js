@@ -17,7 +17,12 @@ const layout = {
     list: bdb.key('l', ['uint32', 'uint32']),
 }
 
+// if (!opened) {
+//     opened = true;
+//     db.open();
+// }
+
 module.exports = {
-    layout,
     db,
+    layout,
 }

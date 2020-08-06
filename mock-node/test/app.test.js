@@ -29,7 +29,7 @@ describe("test mock node", () => {
             let height = 10;
             const res = await chai.request(app).get(`/blockheader/${height}`);
             expect(res.status).toEqual(200);
-            expect(res.body.block.height).toEqual(height);
+            expect(res.body.blockHeader.height).toEqual(height);
         });
     });
 

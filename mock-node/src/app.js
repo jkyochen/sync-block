@@ -21,7 +21,14 @@ app.get("/blockheader/:height", async (req, res) => {
         height: req.params.height,
     });
     res.json({
-        block,
+        hash: block.hash,
+        blockHeader: {
+            height: block.height,
+            previousBlockHash: block.previousBlockHash,
+            timestamp: block.timestamp,
+            txsNumber: block.txsNumber,
+            nonce: block.nonce,
+        }
     });
 });
 
@@ -46,7 +53,12 @@ app.get("/blockevent/:hash", async (req, res) => {
         hash: req.params.hash,
     });
     res.json({
-        event,
+        event: {
+            height: event.height,
+            sender: event.sender,
+            recipient: event.recipient,
+            amount: event.amount,
+        }
     });
 });
 

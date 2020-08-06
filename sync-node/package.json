@@ -9,6 +9,7 @@
     "start:c": "node node/concurrent/index.js"
   },
   "dependencies": {
+    "bcrypto": "^5.2.0",
     "bdb": "^1.2.2",
     "got": "^11.5.1"
   }
