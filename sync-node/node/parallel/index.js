@@ -10,7 +10,7 @@ async function preblockHeaderTask(max_height) {
         const queue = new PQueue({ concurrency: 1 });
         queue.add(async () => {
             await db.put(layout.height.encode(0), Buffer.from(JSON.stringify(data.blockHeader.height)));
-            await db.put(layout.block.encode(0, Buffer.from(data.hash, "hex")), Buffer.from(JSON.stringify(data.blockHeader)));
+            await db.put(layout.block.encode(0, Buffer.from(data.hash)), Buffer.from(JSON.stringify(data.blockHeader)));
             await db.put(layout.list.encode(3, data.blockHeader.height), Buffer.from(JSON.stringify(data.hash)));
         });
     });
@@ -55,7 +55,7 @@ async function preblockEventTask(max_height, executeValidateBlockEvent) {
     preblockEventWorker.on('message', (data) => {
         const queue = new PQueue({ concurrency: 1 });
         queue.add(async () => {
-            await db.put(layout.event.encode(0, Buffer.from(data.hash, "hex")), Buffer.from(JSON.stringify(data.event)));
+            await db.put(layout.event.encode(0, Buffer.from(data.hash)), Buffer.from(JSON.stringify(data.event)));
 
             // l[1][height]
             let downloadedEventHashInHeight = await db.get(layout.list.encode(1, data.event.height));
@@ -117,7 +117,15 @@ function executeValidateBlockEventTask(executeValidateBlockHeader) {
                         throw "validate list exist Unknown block event hash";
                     }
                     let hash = await db.get(layout.list.encode(3, height));
-                    executeValidateBlockHeader.postMessage(JSON.parse(hash));
+                    let blockHeader = await db.get(layout.block.encode(0, Buffer.from(JSON.parse(hash))));
+
+                    let blockEvents = (await Promise.all(validatedEventHashInHeight.map(hash => db.get(layout.event.encode(0, Buffer.from(hash)))))).map(r => JSON.parse(r));
+
+                    executeValidateBlockHeader.postMessage({
+                        hash: hash,
+                        blockHeader: JSON.parse(blockHeader),
+                        blockEvents: blockEvents,
+                    });
                 }
             } catch (error) {
                 console.error(error);

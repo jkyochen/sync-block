@@ -1,20 +1,19 @@
 const { parentPort } = require('worker_threads');
 const { sha256ToString } = require('./hash');
 
-async function executeValidateBlockHeader(hash) { }
-
 parentPort.on('message', async (data) => {
     try {
 
-        // let waitValidateBlockHeader = await db.get(layout.block.encode(0, hash));
-        // waitValidateBlockHeader = JSON.parse(waitValidateBlockHeader);
-        // if (hash === sha256ToString(waitValidateBlockHeader)) {
-        //     console.log(hash, true)
-        // } else {
-        //     console.log(hash, false);
-        // }
+        let block = {
+            ...data.blockHeader,
+            txs: data.blockEvents
+        }
 
-        console.log(data);
+        if (data.hash === sha256ToString(block)) {
+            console.log(true)
+        } else {
+            console.log(false);
+        }
 
     } catch (error) {
         console.log(error);
