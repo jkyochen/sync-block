@@ -1,15 +1,14 @@
 const { parentPort } = require('worker_threads');
-const hash = require('./hash');
+const { sha256ToString } = require('./hash');
 
 parentPort.on('message', async (data) => {
     try {
-        if (data.hash !== hash.sha256ToString(data.event)) {
-            throw ("Event has been changed");
+        if (data.hash !== sha256ToString(data.event)) {
+            throw "Event has been changed";
         }
-        parentPort.postMessage();
+        parentPort.postMessage(data);
     } catch (error) {
         console.log(error);
-        port.close();
         parentPort.close();
     }
 });

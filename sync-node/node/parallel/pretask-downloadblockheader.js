@@ -8,11 +8,7 @@ parentPort.on('message', async ({ init_height, max_height }) => {
             if (pause) {
                 return;
             }
-            let data = await net.getBlockHeaderByHeight(h);
-            parentPort.postMessage({
-                height: h,
-                block: data,
-            });
+            parentPort.postMessage(await net.getBlockHeaderByHeight(h));
         }
     } catch (error) {
         console.log(error);

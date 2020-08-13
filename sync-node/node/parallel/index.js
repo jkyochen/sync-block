@@ -1,14 +1,18 @@
 const { Worker } = require('worker_threads');
+const { default: PQueue } = require('p-queue');
 const net = require('../../net');
 const { db, layout } = require('../../store');
 
 async function preblockHeaderTask(max_height) {
 
     let preblockHeaderWorker = new Worker(`${__dirname}/pretask-downloadblockheader.js`);
-    preblockHeaderWorker.on('message', async (data) => {
-        await db.put(layout.height.encode(0), Buffer.from(JSON.stringify(data.height)));
-        await db.put(layout.block.encode(0, Buffer.from(data.block.hash, "hex")), Buffer.from(JSON.stringify(data.block.blockHeader)));
-        // console.log(data.block.hash);
+    preblockHeaderWorker.on('message', (data) => {
+        const queue = new PQueue({ concurrency: 1 });
+        queue.add(async () => {
+            await db.put(layout.height.encode(0), Buffer.from(JSON.stringify(data.blockHeader.height)));
+            await db.put(layout.block.encode(0, Buffer.from(data.hash, "hex")), Buffer.from(JSON.stringify(data.blockHeader)));
+            await db.put(layout.list.encode(3, data.blockHeader.height), Buffer.from(JSON.stringify(data.hash)));
+        });
     });
 
     let init_height = 0;
@@ -30,12 +34,14 @@ async function preblockEventTask(max_height, executeValidateBlockEvent) {
         let data = await net.getBlockEventsByHeight(height);
         let eventHashs = data.eventHashs;
 
+        // l[0][height]
         let waitDownloadEventHashInHeight = await db.get(layout.list.encode(0, height));
         if (!waitDownloadEventHashInHeight) {
             await db.put(layout.list.encode(0, height), Buffer.from(JSON.stringify(eventHashs)));
             return eventHashs;
         }
 
+        // l[1][height]
         let downloadedEventHashInHeight = await db.get(layout.list.encode(1, height));
         if (downloadedEventHashInHeight) {
             downloadedEventHashInHeight = JSON.parse(downloadedEventHashInHeight);
@@ -46,11 +52,23 @@ async function preblockEventTask(max_height, executeValidateBlockEvent) {
     }
 
     let preblockEventWorker = new Worker(`${__dirname}/pretask-downloadblockevent.js`);
-    preblockEventWorker.on('message', async (data) => {
-        await db.put(layout.event.encode(0, Buffer.from(data.hash, "hex")), Buffer.from(JSON.stringify(data.event)));
-        // console.log(data);
-        // TODO save to wait downloaded
-        executeValidateBlockEvent.postMessage(data);
+    preblockEventWorker.on('message', (data) => {
+        const queue = new PQueue({ concurrency: 1 });
+        queue.add(async () => {
+            await db.put(layout.event.encode(0, Buffer.from(data.hash, "hex")), Buffer.from(JSON.stringify(data.event)));
+
+            // l[1][height]
+            let downloadedEventHashInHeight = await db.get(layout.list.encode(1, data.event.height));
+            if (!downloadedEventHashInHeight) {
+                downloadedEventHashInHeight = [];
+            } else {
+                downloadedEventHashInHeight = JSON.parse(downloadedEventHashInHeight);
+                downloadedEventHashInHeight.push(data.hash);
+            }
+            await db.put(layout.list.encode(1, data.event.height), Buffer.from(JSON.stringify(downloadedEventHashInHeight)));
+
+            executeValidateBlockEvent.postMessage(data);
+        });
     });
 
     let init_height = 0;
@@ -68,12 +86,47 @@ async function preblockEventTask(max_height, executeValidateBlockEvent) {
 function executeValidateBlockEventTask(executeValidateBlockHeader) {
     let executeValidateBlockEventWorker = new Worker(`${__dirname}/executetask-validateblockevent.js`);
 
-    executeValidateBlockEventWorker.on('message', () => {
+    const queue = new PQueue({ concurrency: 1 });
+    executeValidateBlockEventWorker.on('message', (data) => {
+        queue.add(async () => {
+            try {
+                let height = data.event.height;
+                console.log(height);
 
-        executeValidateBlockHeader.postMessage("");
+                // l[2][height]
+                let validatedEventHashInHeight = await db.get(layout.list.encode(2, height));
+                if (!validatedEventHashInHeight) {
+                    validatedEventHashInHeight = [];
+                } else {
+                    validatedEventHashInHeight = JSON.parse(validatedEventHashInHeight);
+                }
+                if (!validatedEventHashInHeight.includes(data.hash)) {
+                    validatedEventHashInHeight.push(data.hash);
+                }
+                await db.put(layout.list.encode(2, height), Buffer.from(JSON.stringify(validatedEventHashInHeight)));
+
+                // l[0][height]
+                let waitDownloadEventHashInHeight = await db.get(layout.list.encode(0, height));
+                if (!waitDownloadEventHashInHeight) {
+                    throw "wait download list is empty";
+                }
+                waitDownloadEventHashInHeight = JSON.parse(waitDownloadEventHashInHeight);
+
+                if (waitDownloadEventHashInHeight.length === validatedEventHashInHeight.length) {
+                    if (!waitDownloadEventHashInHeight.every(r => validatedEventHashInHeight.includes(r))) {
+                        throw "validate list exist Unknown block event hash";
+                    }
+                    let hash = await db.get(layout.list.encode(3, height));
+                    executeValidateBlockHeader.postMessage(JSON.parse(hash));
+                }
+            } catch (error) {
+                console.error(error);
+                executeValidateBlockEventWorker.close();
+            }
+        });
     });
 
-    return executeValidateBlockEvenstWorker;
+    return executeValidateBlockEventWorker;
 }
 
 function executeValidateBlockHeaderTask() {
@@ -92,5 +145,6 @@ function executeValidateBlockHeaderTask() {
     await preblockHeaderTask(version.max_height);
     await preblockEventTask(version.max_height, executeValidateBlockEvent);
 
+    // when worker is close
     // await db.close();
 })();

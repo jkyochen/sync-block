@@ -17,13 +17,16 @@
 
 ### 存储
 
-| key  |     | value                                       | comment                                  |
-| ---- | --- | ------------------------------------------- | ---------------------------------------- |
-| info |     | {download_lastest_height:1,latest_heitht:1} | 已下载的最新高度 + 本地已验证的最新高度  |
-| hash | 0   | block header                                | 已下载的待验证的区块头                   |
-| hash | 1   | block header                                | 已验证的区块头                           |
-| hash | 0   | block event                                 | 已下载的区块事件                         |
-| hash | 1   | block event                                 | 已验证的区块事件                         |
-| list | 0   | [block event]                               | 在该高度下待下载的所有区块事件 Hash 列表 |
-| list | 1   | [block event]                               | 已下载的该高度的所有区块事件 Hash 列表   |
-| list | 2   | [block event]                               | 已验证的该高度的所有区块事件 Hash 列表   |
+| key                  | Options | Type   | value                    | comment                                  |
+| -------------------- | ------- | ------ | ------------------------ | ---------------------------------------- |
+| `h[Options]`         | 0       | Number | downloaded_latest_height | 已下载的最新高度                         |
+| `h[Options]`         | 1       | Number | latest_height            | 本地已验证的最新高度                     |
+| `b[Options][hash]`   | 0       | Object | block header             | 已下载的待验证的区块头                   |
+| `b[Options][hash]`   | 0       | Object | block header             | 已下载的待验证的区块头                   |
+| `b[Options][hash]`   | 1       | Object | block header             | 已验证的区块头                           |
+| `e[Options][hash]`   | 0       | Object | block event              | 已下载的区块事件                         |
+| `e[Options][hash]`   | 1       | Object | block event              | 已验证的区块事件                         |
+| `l[Options][height]` | 0       | Array  | [block event hash]       | 在该高度下待下载的所有区块事件 Hash 列表 |
+| `l[Options][height]` | 1       | Array  | [block event hash]       | 已下载的该高度的所有区块事件 Hash 列表   |
+| `l[Options][height]` | 2       | Array  | [block event hash]       | 已验证的该高度的所有区块事件 Hash 列表   |
+| `l[Options][height]` | 3       | String | block header hash        | 该高度的区块头 Hash                      |
