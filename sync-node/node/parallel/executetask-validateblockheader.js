@@ -1,5 +1,5 @@
 const { parentPort } = require('worker_threads');
-const { sha256ToString } = require('./hash');
+const { sha256ToString } = require('../../hash/hash');
 
 parentPort.on('message', async (data) => {
     try {
